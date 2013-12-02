@@ -1,3 +1,13 @@
+2.5.6
+-----
+* Improvement
+  * Allow to customize the colors and its number on the choropleth legend.
+
+* Fixed Bugs
+  * Make infowindow keep state for a SQL query.
+  * Custom infowindow with image is not adding correctly <img> tag.
+  * Fixed redis configuration in sync tables.
+
 2.5.5
 -----
 * Improvements
