@@ -213,7 +213,7 @@ class User < Sequel::Model
       ::Rails::Sequel.configuration.environment_for(Rails.env).merge(
         'database' => self.database_name,
         :logger => logger,
-        'username' => CartoDB::PUBLIC_DB_USER, 'password' => '',
+        'username' => CartoDB::PUBLIC_DB_USER, 'password' => CartoDB::PUBLIC_DB_USER_PASSWORD,
         'host' => self.database_host
       ) {|key, o, n| n.nil? ? o : n}
     else
@@ -782,7 +782,18 @@ class User < Sequel::Model
                 break
 
           try:
-            client.fetch('#{purge_command} obj.http.X-Cache-Channel ~ "^#{self.database_name}:(.*%s.*)|(table)$"' % table_name)
+            # NOTE: every table change also changed CDB_TableMetadata, so
+            #       we purge those entries too
+            #
+            # TODO: check if any server is ever setting "table" as the
+            #       surrogate key, as that looks redundant to me
+            #       --strk-20131203;
+            #
+            # TODO: do not invalidate responses with surrogate key
+            #       "not_this_one" when table "this" changes :/
+            #       --strk-20131203;
+            #
+            client.fetch('#{purge_command} obj.http.X-Cache-Channel ~ "^#{self.database_name}:(.*%s.*)|(cdb_tablemetadata)|(table)$"' % table_name)
             break
           except Exception as err:
             plpy.warning('Varnish fetch error: ' + str(err))
